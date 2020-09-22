@@ -6,3 +6,4 @@
 【目次】
 
 mnist_classification.ipynb
+kmeans.ipynb
