@@ -5,7 +5,4 @@
 
 【目次】
 
-・mnist_classification.ipynb
-	-MNISTデータセットを用いた基礎的なニューラルネットワーク
-・KMeans.ipynb
-  -K-平均法を用いた分類機
+mnist_classification.ipynb
