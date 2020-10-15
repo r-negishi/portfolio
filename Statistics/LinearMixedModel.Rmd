@@ -1,0 +1,78 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+rm(list=ls(all=TRUE))
+assay <- read.csv("Assay.csv", header = TRUE)
+
+assay
+```
+We first load the data into R then look at the proposed research question.
+Does	the	dilution	level	determine	the	number	of	living	cells	in	a	sample,	as	determined	by	optical	density?	
+```{r}
+block <- as.factor(assay$Block)
+plot(logDens ~ block, data = assay)
+```
+Next, we try plotting each factor against the response variable, logDens so that we can better formulate a hypothesis.
+First, we plot the block difference. The means seem to be similar, if not equal, to each other. However, this is not enough to reach any conclusion.
+```{r}
+plot(logDens ~ sample, data = assay)
+```
+Next, we try and see if there is any variance among the samples themselves. This time, we see a larger variance in and among the samples. 
+```{r}
+Dilut <- as.factor(assay$dilut)
+plot(logDens ~ Dilut, data = assay)
+```
+Finally, we take a look at the last and perhaps the most directly influential variable. We see that as it becomes less diluted, the logarithm of the optical density increases. However, as it becomes less diluted, the change in increase of the optical density decreases.
+
+Now, we formualte our hypotheses. Our null hypothesis is that dilution does not affect the logarithmic optical density. Our alternative hypothesis is that dilution does affect the logartihmic optical density.
+We arrive at this conclusion since we would like to show that the change is the status quo.
+
+```{r}
+library(lme4)
+assay.lmer <- lmer(logDens ~ (1 | Block) + (1| sample) + dilut, data = assay, REML = FALSE)
+summary(assay.lmer)
+```
+```{r}
+assay.lmer.1 <- lmer(logDens ~  (1| sample) + dilut, data = assay, REML = FALSE)
+summary(assay.lmer.1)
+anova(assay.lmer.1, assay.lmer)
+
+
+```
+```{r}
+assay.lmer.2 <- lmer(logDens ~ (1 | Block)  + dilut, data = assay, REML = FALSE)
+summary(assay.lmer.2)
+anova(assay.lmer.2, assay.lmer)
+
+```
+```{r}
+assay.lmer.3 <- lmer(logDens ~ (1 | Block) + (1| sample), data = assay, REML = FALSE)
+summary(assay.lmer.3)
+anova(assay.lmer.3, assay.lmer)
+```
+Using these 3 more simplified models, we see that the model with block and dilution give the most simplified and accurate model.
+With that said, however, both of these factors are important variables, and thus, in our final model we include all sample, block, and dilution factors.
+
+```{r}
+plot(resid(assay.lmer) ~ assay$dilut)
+
+```
+Here, we have the residuals plotted against the fitted values. From here, we see that, for the most part, have a decent significance. Therfore, we can state that there dilution affects the logarithmic optical density.
+
+Furthemore, this model could have a threshold, as shown as by the residual. To find the threshold, we plot the dilution against the base function of the logarithmic function.
+```{r}
+assay$Dens <- 10^assay$logDens
+assay
+```
+
+```{r}
+plot(assay$Dens ~ assay$dilut)
+```
+Now, we see clearly that there is a threshold as the dilution reaches level 1. The change in density decreases as the sample becomes more diluted.
+
+
+
+
