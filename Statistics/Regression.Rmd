@@ -1,0 +1,70 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+
+
+
+```{r}
+
+rm(list=ls(all=TRUE))
+   
+library(MASS)
+data(UScereal)
+UScereal
+```
+
+First, we clear the memory as well as import the data that we'll be using in this assignment.
+Next, we determine the alternative hypothesis as well as the null hypothesis. In this scenario, we pose the research question: "Does the quantity of molecules such as fats, sugars, complex carbohydrates, proteins, etc. determine the number of calories in a cereal?"
+The null hypothesis is as follows: "The quantity of molecules does not determine the number of calories in a cereal".
+The alternative hypothesis is as follows: "The quantity of molecules determines the number of caloies in a cereal".
+
+```{r}
+plot(calories ~ fat, UScereal)
+plot(calories ~ sugars, UScereal)
+plot(calories ~ carbo, UScereal)
+plot(calories ~ protein, UScereal)
+```
+
+```{r}
+cereal <- lm(calories ~ fat + sugars + carbo + protein + fat:sugars + fat:carbo + fat: protein + sugars:carbo + sugars:protein + carbo:protein, data = UScereal)
+
+summary(cereal)
+
+```
+Next, we take a look at the independent relationships as well as the casual pairwise relationships using the linear model, lm() function.
+The console then gives us the coefficients for the relationship as well as the p-values to show the significance of each slope. By looking at the independent relationships with p-values less than 0.05, we can see that sugars and carbohydrates significantly affect the amount of calories in cereal with a positive slope of 3.25 and 3.08 respectively. Both of these variables have a p-value that is much smaller than 0.05.
+Next, we take a look at pairs of variables that affect the calorie content. The combination of fats and sugars as well as the combination of carbohydrates and proteins both have a p-value less than 0.05, making the data valid. That said, they have coefficients of 0.42 and 0.16 respectively, meaning that there is not as much significance compared to the independent slopes.
+
+```{r}
+sugar.lm <- lm(calories ~ sugars, data = UScereal)
+plot(calories ~ sugars, data = UScereal)
+abline(sugar.lm, col = "green")
+
+carbo.lm <- lm(calories ~ carbo, data = UScereal)
+plot(calories ~ carbo, data = UScereal)
+abline(carbo.lm, col = "red")
+
+```
+In the above section, I included a linear regression of the siginificant variables, sugar and carbohydrates, compared to the calories, which indeed gave us a positive slope.
+
+```{r}
+residual <- resid(cereal)
+plot(residual ~ calories, data = UScereal)
+```
+When we plot our residual compared to our calories, we can see that there is an increased density in the number of points in one area, suggesting that our linear regression model may have been inadequate in accurately predicting the results.
+
+```{r}
+plot(cereal)
+```
+Finally, let's take a look at the quality control graphs from the multiple regression call. The first graph is the same as the residual graph that we looked at earlier. 
+The second graph shows whether the residuals are normaly distributed. We can see some deviation from the line, especially on the edges.
+The third graph can tell whether the data is homeoscedastic. Because of the structure in the plot, we have heteroscedastic data.
+In the fourth plot, we see dashed lines, stating that there are outliers in the data.
+Given the four quality control graphs, we can assume that linear regression is not the best approach in determining our hypothesis for this data.
+
+Finally, in response to the research question, calorie content is determined by the amount of molecules, although the residuals and quality control charts tell us that this data is not reliable.
