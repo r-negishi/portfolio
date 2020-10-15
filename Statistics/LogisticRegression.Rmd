@@ -1,0 +1,52 @@
+---
+title: "R Notebook"
+output:
+  html_notebook: default
+  pdf_document: default
+---
+```{r}
+rm(list=ls(all=TRUE))
+
+library(MASS)
+summary(bacteria)
+?bacteria
+show(bacteria)
+```
+
+We first bring up the appropriate library and a summary of the dataset that we will be using in this analysis.
+In this case, we pose our research question as the following: Does the use of drugs eradicate bacteria that causes otitis media?
+Our null hypothesis, or the status quo, is that: The use of drugs DO NOT have an effect on the bacteria that causes otirtis media. 
+On the other hand, the alternative hypothesis is that: The use of drugs DO have an effect on the bacteria that causes otirtis media. This is the idea that we are trying to achieve.
+
+```{r}
+wk11 <- subset(bacteria, week == 11)
+bacteria$yn <- 1
+bacteria$yn[which(bacteria$y == "y")] <- 1
+bacteria$yn[which(bacteria$y == "n")] <- 0
+show(wk11)
+```
+In the above portion, we filter out the appropriate subset from week 11 so that we can determine whether the drug had any effect on the bacteria at the end of the study.
+We then create a new response variable, "yn", that identifies the presence or absence of bacteria with 1 and 0, respectively, as opposed to the factors y and n.
+
+```{r}
+bacteria.model <- glm(yn ~ trt, data = wk11, family = binomial)
+show(bacteria.model)
+summary(bacteria.model)
+
+```
+We use the general linear model equation that plots the presence or absence of bacteria at week 11 (yn) against the treatment type (trt). The reason that we are only comparing it to trt is due to the fact that "trt" factors in both "ap" and "hilo", and adding those to our linear model would only complicate the model.
+The predicted values of the Intercept show a significant value, however, our null deviance and residual deviance show little difference and thus signifies that our model is NOT a good fit. With that said, we can reject our hypothesis and state that drug use has no effect on the presence of H. influenzae.  
+```{r}
+pred.est <- predict.glm(bacteria.model, wk11)
+wk11$pred.value <- round(exp(pred.est) / (1 + exp(pred.est)))
+accuracy <- table(wk11$pred.value, wk11$yn)
+accuracy
+
+sum(diag(accuracy))/sum(accuracy)
+```
+We get an accuracy of 0.273, which signifies that the results are accurate only 27% of the time, which is highly unreliable.
+
+```{r}
+pR2(bacteria.model)
+```
+Finally, McFaddens R2 value is nowhere near 1, further cementing the idea that this model is not a good fit. 
