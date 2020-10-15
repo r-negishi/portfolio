@@ -1,0 +1,78 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+First and foremost, we clear all memory and load our library and dataset. 
+
+```{r}
+rm(list=ls(all=TRUE))
+
+library(MASS)
+data(birthwt)
+
+birthwt
+```
+The dataset we will be using today is the birthwt dataset, which gives the risk factors assoicated with low infant birth weight. 
+For our research question, we would like to know which factors in particular, if any, lead to low birth weight in babies. 
+
+To do so, let's first take a quick look at the overall data.
+
+```{r}
+summary(birthwt)
+```
+We see here that there are 9 total variables. Race, smoke, ht, and ui are all factors. We convert them from integers to factor variables. Furthemore, we can eliminate the "bwt" column, since all it does it give us the weight of the baby. We will only be looking at whether the baby is less than 2.5 kg, or, the "low" column.
+
+```{r}
+birthwt$race <- as.factor(birthwt$race)
+birthwt$smoke <- as.factor(birthwt$smoke)
+birthwt$ht <- as.factor(birthwt$ht)
+birthwt$ui <- as.factor(birthwt$ui)
+birthwt <- birthwt[,-10]
+birthwt
+```
+To begin with, I plot each factor against low. However, because the response variable is binomial, we may not immediately see any particular trends.
+```{r}
+plot(low ~ age, data = birthwt)
+plot(low ~ lwt, data = birthwt)
+plot(low ~ race, data = birthwt)
+plot(low ~ smoke, data = birthwt)
+plot(low ~ ptl, data = birthwt)
+plot(low ~ ht, data = birthwt)
+plot(low ~ ui, data = birthwt)
+plot(low ~ ftv, data = birthwt)
+```
+Now, using the above plots as a guideline, we formulate our hypotheses.
+Our null hypothesis is that these 9 factors do not have an effect on low birthweight. This assumes the status quo, and is the hypothesis that we aim to reject. 
+
+My alternative hypothesis is that these 9 factors DO have an effect on low birthweight. This hypothesis covers everything other than the null hypothesis. Studie have shown that genetics as well as health conditions during pregnancy lead to health conditions of the offspring.
+
+For our dataset, we will be using a Generalized Linear Model. To do so, we must first create the global model with all variables. Since we want to know which specific factors affect low birthweight, we do not take into consideration the pairwise interactions between two factors.
+
+```{r}
+model.1 <- glm(low ~ age + lwt + race + smoke + ptl + ht + ui + ftv, data = birthwt, family = "binomial")
+summary(model.1)
+```
+We see that only some of our intercepts seem to show significant values. This is understandable since we have many parameters, and inclusion of all of our variables could lead to a complicated model.
+
+Next, we reduce this global model by one factor each time, and compare the AIC values to one another. We opt for the model with the lowest AIC value without simplyfing the model too much.
+
+
+```{r}
+options(na.action = "na.fail")
+red.model <- dredge(model.1, rank = "AICc")
+red.model
+```
+We see that the models with "ht, lwt, ptl, race, smoke, ui" and "ht, lwt, race, smoke, ui" have the same AICc of 218.8. We take the more simple of the two since they are considered equally parsimonious.
+
+```{r}
+red.model.1 <- glm(low ~ lwt + race + smoke + ht + ui, data = birthwt, family = "binomial")
+summary(red.model.1)
+```
+We see now that the p-value of all of our intercepts fall within the 0.05 level, making them significant values.
+
+Therfore, we can conclude that history of hypertension, mother's weight, race, smoking status, and presence of uterine irritability all affect low birthweight in babies.
+
+
+
+
